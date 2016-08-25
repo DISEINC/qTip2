@@ -142,7 +142,45 @@ PROTOTYPE.render = function(show) {
 	return this;
 };
 
-PROTOTYPE.destroy = function(immediate) {
+PROTOTYPE.reset = function() {
+	var target = this.target,
+		title = target.attr(oldtitle),
+		timer;
+
+	// Reset to initial events
+	this._unassignEvents();
+	this._assignInitialEvents();
+
+	// Reset old title attribute if removed
+	if(this.options.suppress && title) {
+		target.attr('title', title).removeAttr(oldtitle);
+	}
+
+	// Remove described by attribute coupling
+	target.removeAttr('aria-describedby');
+
+	if(this.rendered) {
+		//remove the tooltip
+		this.tooltip.stop(1,0).find('*').remove().end().remove();
+		//reset rendered flag
+		this.rendered = false;
+	}
+
+	// Clear timers
+	for (timer in this.timers) {
+		if (this.timers.hasOwnProperty(timer)) {
+			clearTimeout(this.timers[timer]);
+		}
+	}
+
+	this.tooltip = NULL;
+	return this.target;
+};
+
+PROTOTYPE.destroy = function(immediate, resetOnly) {
+	if(resetOnly)
+		return this.reset();
+
 	// Set flag the signify destroy is taking place to plugins
 	// and ensure it only gets destroyed once!
 	if(this.destroyed) { return this.target; }
